@@ -5,12 +5,12 @@ import (
 
 	"service_user_go/api/presenter"
 	"service_user_go/pkg/entities"
-
 )
 
 type Repository interface {
-	IndexRepository() (*[]presenter.User, error)
+	IndexRepository() ([]presenter.User, error)
 	CreateRepository(user *entities.User) (*entities.User, error)
+	ShowByUsername(username string) (*entities.User, error)
 }
 
 type repository struct {
@@ -23,11 +23,11 @@ func NewRepo(database *gorm.DB) Repository {
 	}
 }
 
-func (r *repository) IndexRepository() (*[]presenter.User, error) {
+func (r *repository) IndexRepository() ([]presenter.User, error) {
 	var users []presenter.User
 	r.Database.Find(&users)
 
-	return &users, nil
+	return users, nil
 }
 
 func (r *repository) CreateRepository(user *entities.User) (*entities.User, error) {
@@ -36,5 +36,12 @@ func (r *repository) CreateRepository(user *entities.User) (*entities.User, erro
 		return nil, err
 	}
 
+	return user, nil
+}
+
+func (r *repository) ShowByUsername(username string) (*entities.User, error) {
+	var user *entities.User
+
+	r.Database.Where("username = ?", username).First(&user)
 	return user, nil
 }

@@ -1,16 +1,20 @@
 package user
 
 import (
+	"errors"
+
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 
 	"service_user_go/api/presenter"
 	"service_user_go/pkg/entities"
+
 )
 
 type Service interface {
-	IndexService() (*[]presenter.User, error)
+	IndexService() ([]presenter.User, error)
 	CreateService(user *entities.User) (*entities.User, error)
+	FindUserByUsernameService(username string) (*entities.User, error)
 }
 
 type service struct {
@@ -23,7 +27,7 @@ func NewService(r Repository) Service {
 	}
 }
 
-func (s *service) IndexService() (*[]presenter.User, error) {
+func (s *service) IndexService() ([]presenter.User, error) {
 	return s.repository.IndexRepository()
 }
 
@@ -37,6 +41,19 @@ func (s *service) CreateService(user *entities.User) (*entities.User, error) {
 	user.Password = hash
 
 	return s.repository.CreateRepository(user)
+}
+
+func (s *service) FindUserByUsernameService(username string) (*entities.User, error) {
+	data, err := s.repository.ShowByUsername(username)
+	if err != nil {
+		return nil, err
+	}
+
+	if data.ID == uuid.Nil {
+		return nil, errors.New("Users not found")
+	}
+
+	return data, nil
 }
 
 func HashPassword(password string) (string, error) {

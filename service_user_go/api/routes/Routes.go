@@ -5,9 +5,11 @@ import (
 
 	"service_user_go/api/handlers"
 	"service_user_go/pkg/user"
+
 )
 
 func Routes(app fiber.Router, service user.Service) {
 	app.Get("/users", handlers.IndexHandler(service))
 	app.Post("/user", handlers.CreateHandler(service))
+	app.Get("/user", handlers.FindUserByUsername(service))
 }

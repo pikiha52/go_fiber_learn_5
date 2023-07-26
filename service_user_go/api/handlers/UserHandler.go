@@ -7,7 +7,6 @@ import (
 	"service_user_go/api/presenter"
 	"service_user_go/pkg/entities"
 	"service_user_go/pkg/user"
-
 )
 
 func IndexHandler(service user.Service) fiber.Handler {
@@ -45,5 +44,18 @@ func CreateHandler(service user.Service) fiber.Handler {
 
 		c.Status(201)
 		return c.JSON(fiber.Map{"status": true, "message": "User successfully created!"})
+	}
+}
+
+func FindUserByUsername(service user.Service) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		username := c.Query("username")
+		result, err := service.FindUserByUsernameService(username)
+
+		if err != nil {
+			return c.JSON(presenter.UserErrorResponse(err))
+		}
+
+		return c.JSON(presenter.UserSuccessResponse(result))
 	}
 }
