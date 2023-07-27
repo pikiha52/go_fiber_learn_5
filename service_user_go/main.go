@@ -7,6 +7,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/logger"
+	amqp "github.com/rabbitmq/amqp091-go"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 
@@ -54,4 +55,40 @@ func ConnectDB() *gorm.DB {
 	fmt.Println("Migration table users completed")
 
 	return DB
+}
+
+func ConnectRabbitmq() *amqp.Connection {
+	connect, err := amqp.Dial("amqp://guest:guest@localhost:5672")
+	if err != nil {
+		panic(err)
+	}
+
+	return connect
+}
+
+func ReceiveQueue(connection *amqp.Connection) {
+	channel, err := connection.Channel()
+	if err != nil {
+		fmt.Println(err)
+	}
+	defer channel.Close()
+
+	messages, err := channel.Consume(
+		"Users_Signin_Request",
+		"",
+		true,
+		false,
+		false,
+		false,
+		nil,
+	)
+
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	for message := range messages {
+		log.Printf("Received message:  %s\n", message.Body)
+	}
+
 }
