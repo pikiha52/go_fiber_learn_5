@@ -8,7 +8,6 @@ import (
 
 	"service_user_go/api/presenter"
 	"service_user_go/pkg/entities"
-
 )
 
 type Service interface {
@@ -40,7 +39,14 @@ func (s *service) CreateService(user *entities.User) (*entities.User, error) {
 	user.ID = uuid.New()
 	user.Password = hash
 
-	return s.repository.CreateRepository(user)
+	created, err := s.repository.CreateRepository(user)
+	if err != nil {
+		return nil, err
+	}
+
+	s.repository.SendQueue(user.PhoneNumber)
+
+	return created, nil
 }
 
 func (s *service) FindUserByUsernameService(username string) (*entities.User, error) {

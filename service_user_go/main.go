@@ -22,7 +22,8 @@ func main() {
 	app := fiber.New()
 
 	database := ConnectDB()
-	userRepo := user.NewRepo(database)
+	rabbitmq := ConnectRabbitmq()
+	userRepo := user.NewRepo(database, rabbitmq)
 	userService := user.NewService(userRepo)
 
 	api := app.Group("/api", logger.New())
@@ -64,31 +65,4 @@ func ConnectRabbitmq() *amqp.Connection {
 	}
 
 	return connect
-}
-
-func ReceiveQueue(connection *amqp.Connection) {
-	channel, err := connection.Channel()
-	if err != nil {
-		fmt.Println(err)
-	}
-	defer channel.Close()
-
-	messages, err := channel.Consume(
-		"Users_Signin_Request",
-		"",
-		true,
-		false,
-		false,
-		false,
-		nil,
-	)
-
-	if err != nil {
-		fmt.Println(err)
-	}
-
-	for message := range messages {
-		log.Printf("Received message:  %s\n", message.Body)
-	}
-
 }
